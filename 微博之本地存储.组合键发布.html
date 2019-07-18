@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .weibo {
+            width: 600px;
+            border: 1px solid #ccc;
+
+            margin: 100px auto;
+            padding: 10px;
+
+        }
+
+        .weibo-text {
+            width: 590px;
+            height: 140px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            outline: none;
+            resize: none;
+        }
+
+        .weibo-text:focus {
+            border-color: #f60;
+        }
+
+        .weibo-btn {
+            width: 80px;
+            height: 30px;
+            background-color: #f90;
+            color: #fff;
+            border: 0 none;
+            margin-top: 5px;
+            border-radius: 3px;
+            cursor: pointer;
+            outline: 0 none;
+        }
+
+        .weibo-list {
+            padding-top: 10px;
+        }
+
+        .weibo-list li {
+            font-size: 14px;
+            line-height: 30px;
+            border-bottom: 1px dotted #ccc;
+            overflow: hidden;
+        }
+
+        .weibo-list li p {
+            float: left;
+        }
+
+        .weibo-list li span {
+            float: right;
+            cursor: pointer;
+        }
+
+        .weibo-list li input {
+            height: 24px;
+            line-height: 24px;
+            width: 300px;
+            font-size: 14px;
+            border: 0 none;
+        }
+
+        .time {
+            margin-right: 10px;
+            font-style: normal;
+            float: right;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="weibo">
+        <textarea class="weibo-text"></textarea>
+        <input class="weibo-btn" value="发布" type="button">
+        <ul class="weibo-list">
+            <!-- <li>
+                <p class="content">快来收了这九款用上就停不下来的应用吧！！</p> 
+                <span class="del">删除</span>
+                <span class="time">2019</span>
+            </li> -->
+        </ul>
+    </div>
+</body>
+<script src="./kit.js"></script>
+<script>
+    // 实现发布功能
+    let btn = document.querySelector('.weibo-btn');
+    let text = document.querySelector('.weibo-text');
+    let ul = document.querySelector('.weibo-list');
+    btn.onclick = function () {
+        let content = text.value;
+        let li = document.createElement('li');
+        let time = kits.formateDate();
+        li.innerHTML = '<p class="content">' +
+            content + '</p>' +
+            '<span class="del">删除</span>' +
+            '<span class="time">' + time + '</span>';
+        ul.insertBefore(li, ul.children[0]);
+        text.value = '';
+        let obj = {
+            id: kits.primaryKey(),
+            content: content,
+            time: time
+        }
+        wbArr.push(obj);
+        let jsonStr = JSON.stringify(wbArr);
+        localStorage.setItem('wbSto', jsonStr);
+    }
+    let jsonStr = localStorage.getItem('wbSto');
+    let wbArr;
+    if (jsonStr == null) {
+        wbArr = [];
+    } else {
+        wbArr = JSON.parse(jsonStr);
+    }
+    let html = '';
+    // 为了顺序和之前一样,把数组倒序遍历
+    for (let i = wbArr.length - 1; i >= 0; i--) {
+        html += '<li>' +
+            '<p class="content">' + wbArr[i].content + '</p>' + '<span class="del" data-id="' + wbArr[i].id + '">删除</span>' +
+            '<span class="time">' + wbArr[i].time + '</span>' + '</li>';
+    }
+    ul.innerHTML = html;
+
+    // 删除功能:
+    // 1.点击删除按钮-使用委托
+    // 2.利用委托实现点击删除有反应
+    // 3.删除对应的li
+    // 因有可能会重复,故用addEventListener注册
+    ul.addEventListener('click', function (e) {
+        //    判断点击的是否是删除按钮
+        if (e.target.className === 'del') {
+            // 若果是就移除li
+            ul.removeChild(e.target.parentNode);
+            let id = e.target.dataset.id;
+            let jsonStr = localStorage.getItem('WBsto');
+            let arr = JSON.parse(jsonStr);
+            arr.forEach((e, i) => {
+                if (id == e.id) {
+                    arr.splice((i, 1));
+                }
+            });
+            jsonStr = JSON.stringify(arr);
+            localStorage.setItem('wbSto', jsonStr);
+        }
+    });
+
+    // 组合键发布要求:ctrl + 回车键
+    // 步骤:1.给文本域注册键盘按下事件
+    // 2.在事件处理程序中判断是否同时按下ctrl和回车键
+    // text.onkeydown = function (e) {
+    //     // 判断是否同时按下两键
+    //     if (e.ctrlKey && e.keyCode === 13)//13代表回车键
+    //         btn.onclick();
+    // }
+
+    // 第二遍
+    // text.onkeydown = function (e) {
+    //     if (e.ctrlKey && e.keyCode === 13) {
+    //         btn.onclick();
+    //     }
+    // };
+
+    text.onkeydown = function (e) {
+        if (e.ctrlKey && e.keyCode === 13) {
+            btn.onclick();
+        }
+    }
+
+
+</script>
+
+</html>

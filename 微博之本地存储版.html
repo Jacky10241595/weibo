@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .weibo {
+            width: 600px;
+            border: 1px solid #ccc;
+
+            margin: 100px auto;
+            padding: 10px;
+
+        }
+
+        .weibo-text {
+            width: 590px;
+            height: 140px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            outline: none;
+            resize: none;
+        }
+
+        .weibo-text:focus {
+            border-color: #f60;
+        }
+
+        .weibo-btn {
+            width: 80px;
+            height: 30px;
+            background-color: #f90;
+            color: #fff;
+            border: 0 none;
+            margin-top: 5px;
+            border-radius: 3px;
+            cursor: pointer;
+            outline: 0 none;
+        }
+
+        .weibo-list {
+            padding-top: 10px;
+        }
+
+        .weibo-list li {
+            font-size: 14px;
+            line-height: 30px;
+            border-bottom: 1px dotted #ccc;
+            overflow: hidden;
+        }
+
+        .weibo-list li p {
+            float: left;
+        }
+
+        .weibo-list li span {
+            float: right;
+            cursor: pointer;
+        }
+
+        .weibo-list li input {
+            height: 24px;
+            line-height: 24px;
+            width: 300px;
+            font-size: 14px;
+            border: 0 none;
+        }
+
+        .time {
+            margin-right: 10px;
+            font-style: normal;
+            float: right;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="weibo">
+        <textarea class="weibo-text"></textarea>
+        <input class="weibo-btn" value="发布" type="button">
+        <ul class="weibo-list">
+            <!-- <li>
+                <p class="content">快来收了这九款用上就停不下来的应用吧！！</p> 
+                <span class="del">删除</span>
+                <span class="time">2019</span>
+            </li> -->
+        </ul>
+    </div>
+</body>
+<script src="./kit.js"></script>
+<script>
+    // 需求:四个效果:
+    // 1.开始加载页面时,读取本地数据,根据本地数据生成Li
+    // 2.点击发布
+    // 3.ctrl + enter 发布
+    // 4.点击删除
+    // 第3.4点本版本未实现
+
+    // 分析:如果不先完成点击发布功能,就没有本地数据,所以先完成点击发布
+    //点击发布功能步骤:
+    // 1.获取按钮  2.点击注册事件  3.新建li并添加到ul中  4.把数据库存储到本地存储
+    // 一.获取按钮
+    let btn = document.querySelector('.weibo-btn');
+    let ul = document.querySelector('.weibo-list');
+    let text = document.querySelector('.weibo-text');
+    // 二.点击注册事件
+    btn.onclick = function () {
+        // 获取文本
+        let content = text.value;
+        // 新建li
+        let li = document.createElement('li');
+        // 给li添加结构
+        let time = kits.formateDate();
+        li.innerHTML = '<p class="content">' + content + '</p>' + '<span class="del">删除</span>'
+            + '<span class="time">' + time + '</span>';
+        //把li添加至ul中
+        ul.insertBefore(li, ul.children[0]);
+        //清空文本域
+        text.value = '';
+        //为保证刷新后可从localStorage读取数据,动态生成li,需要把数据先存储进localStorage
+        //以对象的方式存,要存储 内容+时间,因为有多条数据,所以需要一个数组.先把数据存进数组,再将数组存储进localStorage.
+        // 设置微博数据对象
+        let obj = {
+            content: content,
+            time: time
+        }
+        // 把已设置好的微博数据对象添加至数组中
+        wbArr.push(obj);
+        //localStorage不能存储字符串以外的数据,所以要将数组转换为json格式的字符串
+        let jsonStr = JSON.stringify(wbArr);
+        // 把转换后的字符串存进localStorage
+        localStorage.setItem('wbSto', jsonStr);
+    }
+
+    // 读取本地数据,生成li
+    // 1.读取数据  2.把读取的内容转换为对象  3.遍历数组,生成多个li
+    let jsonStr = localStorage.getItem('wbSto');
+    // 判断:若之前有数据,就读取;若无,即为null,给个空数组
+    // 声明变量
+    let wbArr;
+    // 判断
+    if (jsonStr == null) {
+        wbArr = [];
+    } else {
+        wbArr = JSON.parse(jsonStr);//把json的字符串转换为数组
+    }
+    // 循环遍历
+    let html = '';
+    wbArr.forEach((e,i) =>{//e是元素,i是索引,此处i可省略不写
+        html+='<li>'+
+            '<p class="content">'+e.content+'</p>'+
+            '<span class="del">删除</span>'+
+            '<span class="time">'+e.time+'</span>'+'</li>';
+    })
+    // 把拼接好的html结构字符串放入ul内
+    ul.innerHTML=html;
+
+</script>
+
+</html>
